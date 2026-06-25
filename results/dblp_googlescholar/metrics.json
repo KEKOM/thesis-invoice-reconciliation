@@ -1,0 +1,51 @@
+{
+  "n_pairs": 5742,
+  "n_matches": 1070,
+  "n_non_matches": 4672,
+  "precision": 0.9438,
+  "recall": 0.8953,
+  "f1": 0.9189,
+  "pr_auc": 0.9776,
+  "roc_auc": 0.995,
+  "accuracy": 0.9706,
+  "confusion": {
+    "tn": 4615,
+    "fp": 57,
+    "fn": 112,
+    "tp": 958
+  },
+  "auto_approve": 1116,
+  "flag_review": 333,
+  "auto_reject": 4293,
+  "pct_automated": 94.2,
+  "review_queue_count": 333,
+  "review_queue_pct": 5.8,
+  "missed_matches": 6,
+  "missed_matches_pct": 0.6,
+  "thresholds": {
+    "high": 0.2773,
+    "low": 0.0397,
+    "case": "both_targets_met"
+  },
+  "model_type": "rf",
+  "seed": 42,
+  "dataset": "dblp_googlescholar",
+  "n_features": 15,
+  "feature_names": [
+    "authors__ratio",
+    "authors__token_sort",
+    "authors__token_set",
+    "authors__exact",
+    "title__ratio",
+    "title__token_sort",
+    "title__token_set",
+    "title__exact",
+    "venue__ratio",
+    "venue__token_sort",
+    "venue__token_set",
+    "venue__exact",
+    "year__abs_diff",
+    "year__rel_diff",
+    "year__both_present"
+  ]
+}

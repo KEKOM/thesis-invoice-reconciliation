@@ -1,0 +1,18 @@
+{
+  "n_invoices": 189,
+  "match_accuracy": 1.0,
+  "review_rate": 0.5132,
+  "false_approval_rate": 0.0,
+  "rejection_rate": 0.0,
+  "n_approved": 92,
+  "n_review": 97,
+  "n_rejected": 0,
+  "n_correct_approved": 92,
+  "n_false_approved": 0,
+  "no_ground_truth": 711,
+  "top_3_accuracy": 0.7485,
+  "top_5_accuracy": 0.7605,
+  "mrr": 0.7477,
+  "mean_confidence_correct": 0.6988,
+  "mean_confidence_false": null
+}

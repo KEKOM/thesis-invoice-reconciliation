@@ -1,0 +1,3 @@
+model [dblp_acm],precision,recall,f1,pr_auc,roc_auc,pct_automated,review_queue_count,review_queue_pct
+Random Forest (primary),0.9568,0.9977,0.9768,0.9935,0.9983,100.0,0,0.0
+XGBoost (benchmark),0.9692,0.991,0.98,0.9879,0.9986,100.0,0,0.0

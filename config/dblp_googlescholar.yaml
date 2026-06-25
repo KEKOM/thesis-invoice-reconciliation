@@ -1,0 +1,73 @@
+# ── DBLP-GoogleScholar pipeline configuration ─────────────────────────────────
+#
+# Dataset: DBLP-GoogleScholar publication matching benchmark (ER-Magellan / DeepMatcher).
+# Positioned as the mid-difficulty dataset between DBLP-ACM (easy) and
+# Walmart-Amazon (hard).
+#
+# Same domain as DBLP-ACM but Google Scholar introduces messier metadata:
+# abbreviated author names, inconsistent venue names, OCR artefacts in titles,
+# and incomplete records.  This makes the string-matching task meaningfully
+# harder while keeping the domain identical — isolating the effect of data
+# quality on pipeline performance.
+#
+# Field mapping (invoice reconciliation analogues):
+#   title   → record identifier / description (invoice line description analogue)
+#   authors → secondary text field (vendor contact / originating party)
+#   venue   → publication series / conference (cost-centre / project analogue)
+#   year    → temporal alignment (fiscal year / invoice period analogue)
+#
+# No amount field — tests pipeline behaviour without the margin feature.
+# Reporting consistent F1 on this dataset supports a cross-domain robustness
+# claim and demonstrates the pipeline handles noisy-source data.
+
+seed: 42
+
+dataset:
+  name: dblp_googlescholar
+  train: data/dblp_googlescholar/train.csv
+  valid: data/dblp_googlescholar/valid.csv
+  test:  data/dblp_googlescholar/test.csv
+
+features:
+  text_fields:    [title, authors, venue]
+  numeric_fields: [year]
+  amount_fields:  []           # margin features deliberately absent for this domain
+  expected_margins: []
+  margin_tolerance: 0.005      # unused here; kept for config schema consistency
+
+blocking:
+  # title prefix (3-char) is the primary blocking key, same as DBLP-ACM.
+  # year bucket (width 1.0 = exact-year buckets) provides temporal blocking.
+  # No amount column.
+  vendor_key_fields:   [title, authors]
+  amount_key_fields:   []
+  year_key_fields:     [year]
+  amount_bucket_width: 1.0   # year bucket width
+
+model:
+  type:          rf
+  n_estimators:  300
+  max_depth:     ~
+  class_weight:  balanced
+  random_state:  42
+
+  xgb_learning_rate: 0.1
+  xgb_max_depth:     6
+  xgb_subsample:     0.8
+
+calibration:
+  val_fraction:          0.20
+  method:                auto
+  min_isotonic_samples:  1000
+
+thresholds:
+  strategy:                   precision_target
+  approve_precision_target:   0.90
+  reject_recall_target:       0.90
+  grid_steps:                 100
+
+retrieval:
+  pool_size: ~   # null = use all unique right-side records from the test split
+
+output:
+  results_dir: results/dblp_googlescholar

@@ -1,0 +1,22 @@
+# Core data stack
+pandas>=2.0
+numpy>=1.24
+
+# Machine learning
+scikit-learn>=1.3
+xgboost>=2.0
+
+# String similarity
+rapidfuzz>=3.0
+
+# Dashboard
+streamlit>=1.30
+plotly>=5.18
+
+# Config
+pyyaml>=6.0
+
+# Stage 1 document extraction (design component)
+pdfplumber>=0.10
+pdf2image>=1.16        # needed by pytesseract OCR fallback
+pytesseract>=0.3       # OCR fallback (also requires Tesseract binary on PATH)

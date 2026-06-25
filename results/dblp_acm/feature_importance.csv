@@ -1,0 +1,16 @@
+feature,importance
+title__token_sort,0.18420756376861
+title__ratio,0.17668047964656575
+authors__token_sort,0.15071048793045638
+title__token_set,0.13345179832581186
+authors__token_set,0.11722339990453845
+year__rel_diff,0.07546375116099097
+year__abs_diff,0.06260273599430487
+authors__ratio,0.05318114195272148
+title__exact,0.01894127092420451
+venue__ratio,0.018043724142143492
+venue__token_set,0.005665238227696362
+venue__token_sort,0.0024922602067290714
+authors__exact,0.001336147815226667
+venue__exact,0.0
+year__both_present,0.0

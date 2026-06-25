@@ -1,0 +1,85 @@
+# ── Walmart-Amazon pipeline configuration ────────────────────────────────────
+#
+# Dataset: Walmart-Amazon product matching benchmark (ER-Magellan / DeepMatcher).
+# Used as a structural proxy for invoice reconciliation:
+#
+#   title     → vendor / company name variation across invoices and ERP records
+#   price     → invoice amount; the margin feature encodes the intercompany rule
+#   category  → project / cost-centre / period alignment
+#   brand     → secondary vendor identifier
+#   modelno   → internal reference / PO number analogue
+#
+# Class balance: ~10 % positive (match) pairs — handled with class_weight: balanced.
+# Evaluation reports precision, recall, F1, and PR-AUC (not raw accuracy).
+
+seed: 42
+
+dataset:
+  name: walmart_amazon
+  train: data/walmart_amazon/train.txt
+  valid: data/walmart_amazon/valid.txt
+  test:  data/walmart_amazon/test.txt
+
+features:
+  # Fields used in feature engineering.
+  # "text_fields" get fuzzy string similarity features (ratio, token_sort, token_set, exact).
+  # "numeric_fields" get absolute-diff and relative-diff features.
+  # "amount_fields" additionally get three margin-aware features (see src/features.py).
+  text_fields:    [title, category, brand, modelno]
+  numeric_fields: [price]
+  amount_fields:  [price]
+
+  # Expected intercompany margins.
+  # 0.0  → exact price match (most Walmart-Amazon true pairs have near-identical prices;
+  #         this is the active case on this benchmark dataset)
+  # 0.10 → 10 % intercompany margin (the active case on real Xebia deployment data;
+  #         effectively inert on this benchmark — kept for production consistency)
+  expected_margins:  [0.0, 0.10]
+  margin_tolerance:  0.005   # pair is margin-consistent if min_dev <= this value
+
+blocking:
+  # Candidate-pair reduction before classification.
+  # vendor_key_fields: first field found is used for 3-char prefix blocking.
+  # amount_key_fields: first field found is bucketed to amount_bucket_width.
+  # year_key_fields:   not applicable for this dataset (leave empty).
+  vendor_key_fields:   [title, name, vendor, supplier]
+  amount_key_fields:   [price, total, amount, unit_price]
+  year_key_fields:     []
+  amount_bucket_width: 10.0   # USD bucket width for amount-key blocking
+
+model:
+  type:          rf            # rf | xgboost
+  n_estimators:  300
+  max_depth:     ~             # null → unlimited (RF default)
+  class_weight:  balanced
+  random_state:  42            # overridden at runtime by top-level seed
+
+  # XGBoost-specific (ignored when type: rf)
+  xgb_learning_rate: 0.1
+  xgb_max_depth:     6
+  xgb_subsample:     0.8
+
+calibration:
+  # Probabilities are calibrated on a held-out slice of the training set.
+  # val_fraction: share of training rows withheld for calibration fitting.
+  # method: auto selects isotonic for >= min_isotonic_samples, else sigmoid.
+  val_fraction:          0.20
+  method:                auto
+  min_isotonic_samples:  1000
+
+thresholds:
+  # Thresholds are searched on the VALIDATION split — never on the test set.
+  # strategy: precision_target
+  #   high_threshold: highest t such that precision(auto-approved) >= approve_precision_target
+  #   low_threshold:  lowest  t such that recall(auto-rejected non-matches) >= reject_recall_target
+  #   Coherence guarantee: high >= low always. Falls back to wider review band on conflict.
+  strategy:                   precision_target
+  approve_precision_target:   0.90
+  reject_recall_target:       0.90
+  grid_steps:                 100   # grid points per threshold axis
+
+retrieval:
+  pool_size: ~   # null = use all unique right-side records from the test split
+
+output:
+  results_dir: results/walmart_amazon

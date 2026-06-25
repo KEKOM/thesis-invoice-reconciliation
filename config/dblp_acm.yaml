@@ -1,0 +1,68 @@
+# ── DBLP-ACM pipeline configuration ─────────────────────────────────────────
+#
+# Dataset: DBLP-ACM publication matching benchmark (ER-Magellan / DeepMatcher).
+# Used as a cross-domain validation benchmark — different field structure from
+# Walmart-Amazon, and deliberately no amount/margin feature.
+#
+# Field mapping:
+#   title   → record identifier / description (closest analogue to invoice description)
+#   authors → secondary text field for matching
+#   venue   → publication venue / conference series
+#   year    → temporal alignment (analogue to invoice period / fiscal year)
+#
+# No amount field exists in this domain.
+# Margin features are deliberately absent — this tests pipeline behaviour when
+# the domain-specific intercompany finance rule does not apply. Reporting
+# consistent F1 on this dataset supports a cross-domain robustness claim.
+
+seed: 42
+
+dataset:
+  name: dblp_acm
+  train: data/dblp_acm/train.csv
+  valid: data/dblp_acm/valid.csv
+  test:  data/dblp_acm/test.csv
+
+features:
+  text_fields:    [title, authors, venue]
+  numeric_fields: [year]
+  amount_fields:  []           # margin features deliberately absent for this domain
+  expected_margins: []
+  margin_tolerance: 0.005      # unused here; kept for config schema consistency
+
+blocking:
+  # title prefix (3-char vendor-key analogue) provides the primary blocking key.
+  # year bucket (width 1.0 = exact-year buckets) provides temporal blocking.
+  # No amount column exists, so amount_key_fields is empty.
+  vendor_key_fields:   [title, authors]
+  amount_key_fields:   []
+  year_key_fields:     [year]
+  amount_bucket_width: 1.0   # year bucket width: 1 year per bucket
+
+model:
+  type:          rf
+  n_estimators:  300
+  max_depth:     ~
+  class_weight:  balanced
+  random_state:  42
+
+  xgb_learning_rate: 0.1
+  xgb_max_depth:     6
+  xgb_subsample:     0.8
+
+calibration:
+  val_fraction:          0.20
+  method:                auto
+  min_isotonic_samples:  1000
+
+thresholds:
+  strategy:                   precision_target
+  approve_precision_target:   0.90
+  reject_recall_target:       0.90
+  grid_steps:                 100
+
+retrieval:
+  pool_size: ~   # null = use all unique right-side records from the test split
+
+output:
+  results_dir: results/dblp_acm
